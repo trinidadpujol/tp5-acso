@@ -9,6 +9,9 @@
  * If found, return the directory entry in space addressed by dirEnt.  Returns 0
  * on success and something negative on failure. 
  */
+
+/* un bloque esta lleno de dirents*/
+
 int directory_findname(struct unixfilesystem *fs, const char *name,
                        int dirinumber, struct direntv6 *dirEnt);
 
