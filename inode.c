@@ -11,6 +11,7 @@ int inode_iget(struct unixfilesystem *fs, int inumber, struct inode *inp) {
     // Allocate memory for a sector buffer
     void *buffer = malloc(DISKIMG_SECTOR_SIZE);
     if (buffer == NULL) {
+        fprintf(stderr, "Error: Out of memory\n");
         return -1; 
     }
     int inodes_per_sector = DISKIMG_SECTOR_SIZE / sizeof(struct inode);  // Calculate the number of inodes per sector (256)
@@ -21,6 +22,7 @@ int inode_iget(struct unixfilesystem *fs, int inumber, struct inode *inp) {
     // Read the sector from disk
     if (diskimg_readsector(fs->dfd, sector_number, buffer) == -1) {
         free(buffer);   // if it fails, clean buffer 
+        fprintf(stderr, "Error: Reading sector failed\n");
         return -1; 
     }
 
@@ -45,6 +47,7 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum
         if (blockNum < 7) {
             return inp->i_addr[blockNum];
         } else {
+            fprintf(stderr, "Error: Invalid block number for small files\n");
             return -1; // Invalid block number for small files
         }
     }
@@ -55,6 +58,7 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum
 
     uint16_t *buffer_1 = malloc(DISKIMG_SECTOR_SIZE);  // Allocate memory for the first level indirect block buffer
     if (buffer_1 == NULL) {
+        fprintf(stderr, "Error: Out of memory\n");
         return -1; 
     }
 
@@ -66,6 +70,7 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum
         // Read the sector containing the indirect block.
         if (diskimg_readsector(fs->dfd, inp->i_addr[indir_index], buffer_1) == -1) {
             free(buffer_1); // If it fails clean buffer 1
+            fprintf(stderr, "Error: Reading sector failed\n");
             return -1; 
         }
 
@@ -77,12 +82,14 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum
     // Second level of indirection
     if (diskimg_readsector(fs->dfd, inp->i_addr[7], buffer_1) == -1) {
         free(buffer_1);
+        fprintf(stderr, "Error: Reading sector failed\n");
         return -1; // First level indirect block read failed
     }
 
     uint16_t *buffer_2 = malloc(DISKIMG_SECTOR_SIZE); // Allocate mem for the second level indirect block buffer
     if (buffer_2 == NULL) {
         free(buffer_1);
+        fprintf(stderr, "Error: Out of memory\n");
         return -1; 
     }
 
@@ -90,6 +97,7 @@ int inode_indexlookup(struct unixfilesystem *fs, struct inode *inp, int blockNum
     if (diskimg_readsector(fs->dfd, buffer_1[second_indir_index], buffer_2) == -1) {
         free(buffer_1);
         free(buffer_2);
+        fprintf(stderr, "Error: Reading sector failed\n");
         return -1; // If it fails, clean buffer 1 and 2
     }
 
