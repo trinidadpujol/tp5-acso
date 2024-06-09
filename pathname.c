@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 
 int pathname_lookup(struct unixfilesystem *fs, const char *pathname) {
